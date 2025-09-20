@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Edit3 } from 'lucide-react';
+import { ArrowLeft, User } from 'lucide-react';
 
 interface UserProfileProps {
   onBackClick: () => void;
@@ -9,36 +9,37 @@ interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({
   onBackClick,
-  onEditClick,
   onLogoutClick
 }) => {
   const [showEditMenu, setShowEditMenu] = useState(false);
 
   return (
-    <div className="min-h-screen bg-stone-50 relative max-w-md mx-auto overflow-hidden">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* 상단 상태바 */}
-      <div className="absolute top-0 left-0 right-0 bg-green-400 px-4 py-3 text-white text-sm font-medium flex justify-between items-center z-10">
-        <span className="font-['SF_Pro']">9:30</span>
-        <div className="flex items-center space-x-1.5">
-          <div className="w-5 h-3 bg-white" />
-          <div className="w-4 h-3 bg-white" />
-          <div className="w-6 h-3 opacity-30 rounded border border-white" />
-          <div className="w-1 h-1 opacity-40 bg-white" />
-          <div className="w-5 h-2 bg-white rounded-sm" />
+      <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <span className="w-1 h-1 bg-white rounded-full" />
+            <span className="w-1 h-1 bg-white rounded-full" />
+            <span className="w-1 h-1 bg-white rounded-full" />
+            <span className="w-1 h-1 bg-white rounded-full" />
+          </div>
+          <span className="text-xs">📶</span>
+          <span className="text-xs">📶</span>
+          <span className="text-xs">🔋</span>
         </div>
       </div>
 
       {/* 상단 헤더 */}
-      <div className="bg-green-400 pt-12 pb-6 px-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <button
-            onClick={onBackClick}
-            className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-          <h1 className="text-white text-lg font-semibold font-['Lora']">내 정보</h1>
-        </div>
+      <div className="bg-[#74CD79] px-4 py-4 flex items-center">
+        <button
+          onClick={onBackClick}
+          className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-white" />
+        </button>
+        <h1 className="text-white text-xl font-bold">내 정보</h1>
       </div>
 
       {/* 환영 메시지 */}
@@ -50,7 +51,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
       <div className="text-left mx-6 bg-white rounded-[20px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <User className="w-6 h-6 text-green-400 mr-2" />
+            <User className="w-6 h-6 text-[#74CD79] mr-2" />
             <h3 className="text-xl font-bold text-neutral-600 font-['Golos_Text']">내 정보</h3>
           </div>
         </div>
