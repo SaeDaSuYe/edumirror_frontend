@@ -69,7 +69,7 @@ const SplashScreen = () => {
             <img
               src={appLogo}
               alt="Edu-Mirror App Logo"
-              className="w-50 h-40 md:w-24 md:h-24 drop-shadow-lg"
+              className="w-50 h-40 md:w-24 md:h-24"
               draggable={false}
             />
           </div>
@@ -80,7 +80,7 @@ const SplashScreen = () => {
           <img
             src={textLogo}
             alt="Edu-Mirror"
-            className="h-12 md:h-16 lg:h-20 mx-auto drop-shadow"
+            className="h-12 md:h-16 lg:h-20 mx-auto"
             draggable={false}
           />
         </div>

@@ -66,7 +66,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
             <input 
               type="text" 
               placeholder="id"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
             />
           </div>
           
@@ -75,7 +75,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
             <input 
               type="password" 
               placeholder="password"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
             />
           </div>
         </div>
@@ -84,14 +84,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
         <div className="space-y-3 mb-6">
           <button 
             onClick={onLogin}
-            className="w-full bg-[#74CD79] text-white py-3 rounded-xl font-medium hover:bg-[#5FB366] transition-colors"
+            className="w-full bg-[#74CD79] text-white py-3 rounded-[30px] font-medium hover:bg-[#5FB366] transition-colors"
           >
             로그인
           </button>
           
           <button 
             onClick={onTeacherLogin}
-            className="w-full bg-white border-2 border-[#74CD79] text-[#74CD79] py-3 rounded-xl font-medium hover:bg-[#74CD79] hover:text-white transition-colors"
+            className="w-full bg-white border-2 border-[#74CD79] text-[#74CD79] py-3 rounded-[30px] font-medium hover:bg-[#74CD79] hover:text-white transition-colors"
           >
             교사/부모 계정으로 체험하기
           </button>
@@ -133,7 +133,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
             <span aria-hidden className="hidden sm:block w-28 md:w-36 h-6 bg-white rounded-[30px] border border-neutral-200 shrink-0" />
 
             {/* 라벨 */}
-            <span className="p-2 bg-white text-neutral-400 text-sm font-normal font-[Gotu] whitespace-nowrap rounded-full outline outline-[0.68px]" >
+            <span className="p-2 bg-white text-neutral-400 text-sm font-normal font-[Gotu] whitespace-nowrap rounded-full outline outline-[0.68px] hover:bg-[#74CD79] hover:text-white" >
               구글 계정으로 로그인
             </span>
           </button>
