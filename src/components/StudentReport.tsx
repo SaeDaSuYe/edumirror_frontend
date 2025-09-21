@@ -84,19 +84,35 @@ const StudentReport: React.FC<StudentReportProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* 상단 상태바 */}
+      <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+          </div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">🔋</div>
+        </div>
+      </div>
+
       {/* 상단 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={onBackClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
+      <div className="bg-[#74CD79] px-4 py-4 flex items-center">
+        <button
+          onClick={onBackClick}
+          className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-white" />
+        </button>
+        <div className="flex items-center text-left space-x-3">
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">{studentInfo.name} 학생 리포트</h1>
-            <p className="text-sm text-gray-500">{studentInfo.school}</p>
+            <h1 className="text-white text-xl font-bold">{studentInfo.name} 학생 리포트</h1>
+            <p className="text-white/80 text-sm">{studentInfo.school}</p>
           </div>
         </div>
       </div>

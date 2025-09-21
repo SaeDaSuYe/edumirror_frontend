@@ -89,26 +89,35 @@ const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 상단 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onBackClick}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">교사/부모용 대시보드</h1>
-              <p className="text-sm text-gray-500">학생들의 발표 성장을 확인하세요</p>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* 상단 상태바 */}
+      <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-[#74CD79] rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
-            </div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">🔋</div>
+        </div>
+      </div>
+
+      {/* 상단 헤더 */}
+      <div className="bg-[#74CD79] px-4 py-4 flex items-center">
+        <button
+          onClick={onBackClick}
+          className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-white" />
+        </button>
+        <div className="flex items-center text-left space-x-3">
+          <div>
+            <h1 className="text-white text-xl font-bold">교사/부모용 대시보드</h1>
+            <p className="text-white/80 text-sm">학생들의 발표 성장을 확인하세요!</p>
           </div>
         </div>
       </div>

@@ -148,7 +148,7 @@ const ImprovementChat: React.FC<ImprovementChatProps> = ({ onBackClick }) => {
                     : 'bg-white text-gray-900 shadow-sm border border-gray-100'
                 }`}
               >
-                <div className="text-sm leading-relaxed whitespace-pre-line">
+                <div className="text-left text-sm leading-relaxed whitespace-pre-line">
                   {message.message}
                 </div>
               </div>

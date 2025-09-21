@@ -135,25 +135,41 @@ const TeacherImprovementChat: React.FC<TeacherImprovementChatProps> = ({
     return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
   };
 
+  
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* 상단 상태바 */}
+      <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+          </div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">🔋</div>
+        </div>
+      </div>
+
       {/* 상단 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
+      <div className="bg-[#74CD79] px-4 py-4 flex items-center flex-shrink-0">
+        <button
+          onClick={onBackClick}
+          className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6 text-white" />
+        </button>
         <div className="flex items-center space-x-3">
-          <button
-            onClick={onBackClick}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#74CD79] rounded-full flex items-center justify-center">
-              <Bot className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">개선 가이드 AI</h1>
-              <p className="text-sm text-gray-500">{studentName} 학생 맞춤 가이드</p>
-            </div>
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-white text-xl font-bold">개선 가이드</h1>
+            <p className="text-white/80 text-sm">AI 발표 코치</p>
           </div>
         </div>
       </div>
@@ -231,7 +247,7 @@ const TeacherImprovementChat: React.FC<TeacherImprovementChatProps> = ({
       </div>
 
       {/* 빠른 액션 버튼 */}
-      <div className="px-4 py-2 bg-white border-t border-gray-200">
+      <div className="sticky bottom-0 px-4 py-2 bg-white border-t border-gray-200 z-10">
         <div className="flex space-x-2 mb-2">
           <button
             onClick={() => handleSuggestionClick('전체적인 개선 계획을 세워주세요')}
@@ -248,10 +264,8 @@ const TeacherImprovementChat: React.FC<TeacherImprovementChatProps> = ({
             <span>학부모 연계</span>
           </button>
         </div>
-      </div>
-
-      {/* 입력 영역 */}
-      <div className="bg-white border-t border-gray-200 p-4 flex-shrink-0">
+        
+        {/* 입력 영역 */}
         <div className="flex space-x-2">
           <input
             type="text"
