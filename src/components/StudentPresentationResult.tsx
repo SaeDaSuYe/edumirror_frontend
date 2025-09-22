@@ -81,13 +81,13 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
+    if (score >= 70) return 'text-yellow-300';
     return 'text-red-600';
   };
 
   const getScoreBgColor = (score: number) => {
     if (score >= 85) return 'bg-green-100';
-    if (score >= 70) return 'bg-yellow-100';
+    if (score >= 70) return 'bg-yellow-500';
     return 'bg-red-100';
   };
 
@@ -321,7 +321,22 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#FFFFFF] flex flex-col">
+      {/* 상단 상태바 */}
+      <div className="bg-[#FFFFFF] px-4 py-2 text-black text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-black rounded-full"></div>
+            <div className="w-1 h-1 bg-black rounded-full"></div>
+            <div className="w-1 h-1 bg-black rounded-full"></div>
+            <div className="w-1 h-1 bg-black rounded-full"></div>
+          </div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">🔋</div>
+        </div>
+      </div>
       {/* 상단 헤더 */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="flex items-center space-x-3">
@@ -332,8 +347,8 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-gray-900">{analysisResult.title}</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-left text-lg font-semibold text-gray-900">{analysisResult.title}</h1>
+            <p className="text-left text-sm text-gray-500">
               {formatTime(analysisResult.duration)} • 방금 완료됨
             </p>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Play, Pause, Volume2, TrendingUp, Eye, BarChart3, Calendar, Award, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface PresentationHistoryProps {
   onRecordClick?: (record: any) => void;
@@ -111,6 +112,7 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
     // 상세 분석 화면
     return (
       <div className="min-h-screen bg-gray-50">
+        
         {/* 상단 헤더 */}
         <div className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center space-x-3">
@@ -301,33 +303,41 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
 
   // 기록 목록 화면
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 상단 헤더 */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {onBackClick && (
-              <button
-                onClick={onBackClick}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
-              </button>
-            )}
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">내 발표 기록</h1>
-              <p className="text-sm text-gray-500">발표 성장 과정을 확인해보세요</p>
-            </div>
+    <div className="min-h-screen bg-[#ECF2ED] flex flex-col">
+      {/* 상단 상태바 */}
+      <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
+        <span>9:30</span>
+        <div className="flex space-x-1">
+          <div className="flex space-x-1">
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
+            <div className="w-1 h-1 bg-white rounded-full"></div>
           </div>
-          {onNewPresentationClick && (
-            <button 
-              onClick={onNewPresentationClick}
-              className="bg-[#74CD79] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#5FB366] transition-colors"
-            >
-              + 새 발표
-            </button>
-          )}
+          <div className="text-xs">📶</div>
+          <div className="text-xs">📶</div>
+          <div className="text-xs">🔋</div>
         </div>
+      </div>
+
+      {/* 상단 헤더 */}
+      <div className="bg-[#74CD79] px-4 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={onBackClick}
+            className="mr-4 p-2 rounded-full hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6 text-white" />
+          </button>
+        </div>
+        <h1 className="text-white text-xl font-bold">내 발표 기록</h1>
+        <button
+          onClick={onNewPresentationClick}
+          className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-[20px] flex items-center space-x-2 border border-white/30"
+        >
+          <Plus className="w-5 h-5 text-white" />
+          <span className="text-white font-medium">새 발표</span>
+        </button>
       </div>
 
       {/* 성과 요약 */}
@@ -367,17 +377,17 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
             <div 
               key={presentation.id}
               onClick={() => setSelectedRecord(presentation.id)}
-              className={`bg-white rounded-lg p-4 border-l-4 cursor-pointer hover:shadow-md transition-all ${getLeftBorderColor(presentation.status)} border border-gray-200`}
+              className={`bg-white rounded-[20px] p-4 border-l-4 cursor-pointer hover:shadow-md transition-all ${getLeftBorderColor(presentation.status)} border border-gray-200`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
+                  <div className="flex items-center space-x-3 mb-1">
                     <Calendar className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-500">{formatDate(presentation.date)}</span>
                     <Clock className="w-4 h-4 text-gray-400" />
                     <span className="text-sm text-gray-500">{formatTime(presentation.duration)}</span>
                   </div>
-                  <h3 className="text-gray-900 font-medium text-base mb-2">
+                  <h3 className="text-left text-gray-900 font-medium text-base mb-2">
                     {presentation.title}
                   </h3>
                   <div className="flex flex-wrap gap-1">
@@ -389,7 +399,7 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
                   </div>
                 </div>
                 <div className="ml-4 text-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold text-white ${getScoreBgColor(presentation.score)}`}>
+                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white ${getScoreBgColor(presentation.score)}`}>
                     {presentation.score}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">점</div>

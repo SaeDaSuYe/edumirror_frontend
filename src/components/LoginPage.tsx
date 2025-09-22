@@ -1,6 +1,9 @@
 import React from 'react';
 import LoginButton from './LoginButton';
 import SocialLogin from './SocialLogin';
+import appLogo from '../assets/app-logo.svg';
+import textLogo from '../assets/login-text-logo.svg';
+import googleIcon from '../assets/google-login.svg';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -29,40 +32,50 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
       </div>
 
       {/* 메인 로그인 카드 */}
-      <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-lg mt-16 mb-8">
+      <div className="w-full max-w-sm bg-[#DEDEDE] rounded-3xl p-8 shadow-lg mt-16 mb-8">
         {/* 로고 섹션 */}
         <div className="flex flex-col items-center mb-8">
           {/* 로고 아이콘 */}
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center mr-2">
-              <div className="w-8 h-8 bg-gray-100 rounded"></div>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-200 rounded"></div>
+          <div className="flex items-center mb-0">
+            {/* 로고 아이콘 (SVG) */}
+            <div className="mb-0">
+              <img
+                src={appLogo}
+                alt="Edu-Mirror App Logo"
+                className="w-28 h-28 md:w-24 md:h-24"
+                draggable={false}
+              />
             </div>
           </div>
-          
-          {/* 로고 텍스트 */}
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Edu-Mirror</h1>
+
+          {/* 로고 텍스트 (SVG) */}
+          <div className="text-center mb-0">
+            <img
+              src={textLogo}
+              alt="Edu-Mirror"
+              className="h-8 md:h-12 lg:h-20 mx-auto"
+              draggable={false}
+            />
+          </div>
         </div>
 
         {/* 입력 필드들 */}
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm text-gray-600 mb-2">아이디</label>
+            <label className="block text-sm text-gray-600 mb-2 px-2 text-left">아이디</label>
             <input 
               type="text" 
-              placeholder="gildong27"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              placeholder="id"
+              className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
             />
           </div>
           
           <div>
-            <label className="block text-sm text-gray-600 mb-2">비밀번호</label>
+            <label className="block text-sm text-gray-600 mb-2 px-2 text-left">비밀번호</label>
             <input 
               type="password" 
-              placeholder="••••••••••••"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              placeholder="password"
+              className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
             />
           </div>
         </div>
@@ -71,14 +84,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
         <div className="space-y-3 mb-6">
           <button 
             onClick={onLogin}
-            className="w-full bg-[#74CD79] text-white py-3 rounded-xl font-medium hover:bg-[#5FB366] transition-colors"
+            className="w-full bg-[#74CD79] text-white py-3 rounded-[30px] font-medium hover:bg-[#5FB366] transition-colors"
           >
             로그인
           </button>
           
           <button 
             onClick={onTeacherLogin}
-            className="w-full bg-white border-2 border-[#74CD79] text-[#74CD79] py-3 rounded-xl font-medium hover:bg-[#74CD79] hover:text-white transition-colors"
+            className="w-full bg-white border-2 border-[#74CD79] text-[#74CD79] py-3 rounded-[30px] font-medium hover:bg-[#74CD79] hover:text-white transition-colors"
           >
             교사/부모 계정으로 체험하기
           </button>
@@ -100,20 +113,31 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
         {/* 간편 로그인 섹션 */}
         <div className="space-y-4">
           <div className="flex items-center">
-            <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="px-4 text-sm text-gray-500">간편 로그인</span>
-            <div className="flex-1 h-px bg-gray-200"></div>
+            <div className="flex-1 h-px bg-gray-400"></div>
+            <span className="px-4 text-sm text-gray-400">간편 로그인</span>
+            <div className="flex-1 h-px bg-gray-400"></div>
           </div>
-          
-          <button 
+        
+          <button
+            type="button"
             onClick={onGoogleLogin}
-            className="w-full flex items-center justify-center space-x-3 py-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+            aria-label="구글 계정으로 로그인"
+            className="inline-flex items-center gap-3 focus:outline-none"
           >
-            <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-bold">G</span>
-            </div>
-            <span className="text-gray-600">구글 계정으로 로그인</span>
+            {/* 아이콘 원형 */}
+            <span className="w-12 h-12 bg-white rounded-full outline outline-[0.68px] outline-offset-[-2px] outline-zinc-400 flex justify-center items-center shadow-sm shrink-0">
+              <img src={googleIcon} alt="" className="w-10 h-10 pointer-events-none select-none" draggable={false}/>
+            </span>
+
+            {/* 가운데 캡슐(장식) — 작은 화면에선 숨김 */}
+            <span aria-hidden className="hidden sm:block w-28 md:w-36 h-6 bg-white rounded-[30px] border border-neutral-200 shrink-0" />
+
+            {/* 라벨 */}
+            <span className="p-2 bg-white text-neutral-400 text-sm font-normal font-[Gotu] whitespace-nowrap rounded-full outline outline-[0.68px] hover:bg-[#74CD79] hover:text-white" >
+              구글 계정으로 로그인
+            </span>
           </button>
+
         </div>
       </div>
     </div>

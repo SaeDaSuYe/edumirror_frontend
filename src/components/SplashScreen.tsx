@@ -1,6 +1,23 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
+import appLogo from '../assets/app-logo.svg';
+import textLogo from '../assets/text-logo.svg';
 
 const SplashScreen = () => {
+  const [sloganText, setSloganText] = useState('말하는 순간, 배움이 보인다!');
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setSloganText('Show, Speak, Grow!');
+        setIsAnimating(false);
+      }, 300); // Short delay for smooth transition
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="relative w-full h-screen bg-[#74CD79] overflow-hidden flex flex-col items-center justify-center">
       {/* 상단 상태바 */}
@@ -46,32 +63,34 @@ const SplashScreen = () => {
       {/* 로고 영역 */}
       <div className="relative z-10 flex flex-col items-center">
         {/* 로고 아이콘 */}
-        <div className="flex items-center mb-6">
-          <div className="w-16 h-16 bg-white rounded-lg border border-gray-200 flex items-center justify-center mr-2 shadow-lg">
-            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-              <span className="text-gray-600 font-bold text-sm">AI</span>
-            </div>
-          </div>
-          <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center shadow-lg">
-            <div className="w-12 h-12 bg-blue-200 rounded flex items-center justify-center relative">
-              {/* 거울 효과 */}
-              <div className="absolute inset-1 rounded border border-white/30"></div>
-              <div className="w-8 h-8 bg-white/80 rounded flex items-center justify-center">
-                <span className="text-xs font-bold text-gray-600">M</span>
-              </div>
-            </div>
+        <div className="flex items-center mb-5">
+          {/* 로고 아이콘 (SVG) */}
+          <div className="mb-6">
+            <img
+              src={appLogo}
+              alt="Edu-Mirror App Logo"
+              className="w-50 h-40 md:w-24 md:h-24"
+              draggable={false}
+            />
           </div>
         </div>
 
-        {/* 로고 텍스트 */}
+        {/* 로고 텍스트 (SVG) */}
         <div className="text-center mb-8">
-          <h1 className="text-white text-5xl font-bold tracking-wider mb-4">Edu-Mirror</h1>
+          <img
+            src={textLogo}
+            alt="Edu-Mirror"
+            className="h-12 md:h-16 lg:h-20 mx-auto"
+            draggable={false}
+          />
         </div>
 
         {/* 메인 슬로건 */}
-        <div className="text-center px-8">
-          <h2 className="text-white text-xl font-normal leading-relaxed">
-            말하는 순간, 배움이 보인다!
+        <div className="text-center px-6">
+          <h2 className={`text-white/95 text-lg md:text-xl leading-relaxed font-normal transition-opacity duration-300 ${
+            isAnimating ? 'opacity-0' : 'opacity-100'
+          }`}>
+            {sloganText}
           </h2>
         </div>
       </div>

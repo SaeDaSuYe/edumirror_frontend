@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, MessageSquare, User, Plus, MoreVertical } from 'lucide-react';
+import springIcon from '../assets/note-spring.svg';
 
 interface PresentationRecord {
   id: string;
@@ -64,12 +65,8 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
     }
   };
 
-  const getScoreTextColor = (status: string) => {
-    return 'text-white';
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[#ECF2ED] flex flex-col">
       {/* 상단 상태바 */}
       <div className="bg-[#74CD79] px-4 py-2 text-white text-sm font-medium flex justify-between items-center">
         <span>9:30</span>
@@ -91,7 +88,7 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <h1 className="text-white text-xl font-bold">내 발표 기록</h1>
         <button
           onClick={onNewPresentationClick}
-          className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg flex items-center space-x-2 border border-white/30"
+          className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-[20px] flex items-center space-x-2 border border-white/30"
         >
           <Plus className="w-5 h-5 text-white" />
           <span className="text-white font-medium">새 발표</span>
@@ -99,37 +96,54 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
       </div>
 
       {/* 발표 기록 리스트 */}
-      <div className="flex-1 px-4 py-6 space-y-4">
+      <div className="flex-1 py-6 px-5 space-y-6">
         {presentationRecords.map((record) => (
           <div
             key={record.id}
             onClick={() => onRecordClick(record)}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+            className="justify-center max-w-80 max-w-md mx-auto relative cursor-pointer hover:opacity-50 transition-opacity"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-500">{record.date}</span>
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-[#74CD79] rounded-full opacity-60"></div>
-                <div className="w-2 h-2 bg-[#74CD79] rounded-full opacity-40"></div>
-                <div className="w-2 h-2 bg-[#74CD79] rounded-full opacity-20"></div>
-              </div>
-            </div>
-            
-            <h3 className="text-gray-900 font-semibold text-lg mb-3">{record.title}</h3>
-            
-            <div className="flex items-center justify-between">
-              <div className={`${getScoreColor(record.status)} w-16 h-16 rounded-full flex items-center justify-center`}>
-                <span className={`${getScoreTextColor(record.status)} text-sm font-bold`}>
-                  {record.score}점
-                </span>
-              </div>
+            {/* 컨테이너 - 카드 높이 설정 */}
+            <div className="h-24 relative">
+              {/* 배경 그림자 카드 */}
+              <div className="absolute inset-0 bg-green-400 rounded-[20px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] transform translate-x-1" />
               
-              <div className="text-right">
-                <div className="text-gray-400 text-xs">발표 점수</div>
-                <div className="flex space-x-1 mt-1">
-                  <div className="w-2 h-2 bg-[#74CD79] rounded-full"></div>
-                  <div className="w-2 h-2 bg-[#74CD79] rounded-full"></div>
-                  <div className="w-2 h-2 bg-[#74CD79] rounded-full"></div>
+              {/* 메인 카드 */}
+              <div className="absolute inset-0 bg-white rounded-[20px] transform translate-x-3" />
+              
+              {/* 카드 내용 */}
+              <div className="relative h-full flex items-center px-6 py-4 ml-2">
+                {/* 왼쪽 스프링 아이콘 */}
+                <div className="absolute left-0 top-1/3 transform -translate-y-1/2 -translate-x-5">
+                  <img 
+                    src={springIcon} 
+                    alt="Spring decoration" 
+                    className="w-8 h-8 sm:w-10 sm:h-10 pointer-events-none select-none" 
+                    draggable={false}
+                  />
+                </div>
+                
+                {/* 텍스트 영역 */}
+                <div className="flex-1 pr-4 text-left pb-4">
+                  {/* 날짜 */}
+                  <div className="text-neutral-400 text-xs sm:text-sm font-normal font-['Golos_Text'] mb-2">
+                    {record.date}
+                  </div>
+                  
+                  {/* 제목 */}
+                  <div className="text-neutral-600 text-base sm:text-xl font-bold font-['Golos_Text'] leading-tight">
+                    {record.title}
+                  </div>
+                </div>
+                
+                {/* 점수 영역 */}
+                <div className="flex-shrink-0">
+                  <div className={`w-16 h-16 sm:w-20 sm:h-20 ${getScoreColor(record.status)} rounded-full flex items-center justify-center`}>
+                    <div className="text-center">
+                      <span className="text-white text-xl sm:text-3xl font-semibold font-['Golos_Text'] leading-none">{record.score}</span>
+                      <span className="text-white text-sm sm:text-base font-semibold font-['Golos_Text']">점</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
