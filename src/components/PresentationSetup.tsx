@@ -13,6 +13,7 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
   const [presentationName, setPresentationName] = useState('');
   const [presentationContent, setPresentationContent] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedScriptFile, setSelectedScriptFile] = useState<File | null>(null);
   const [cameraConnected, setCameraConnected] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [selectedEnvironment, setSelectedEnvironment] = useState('classroom');
@@ -47,6 +48,24 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
         setSelectedFile(file);
       } else {
         alert('PDF 또는 PPT 파일만 업로드 가능합니다.');
+        event.target.value = ''; // 입력 초기화
+      }
+    }
+  };
+
+  const handleScriptFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // 파일 형식 검증 (TXT, PDF만 허용)
+      const allowedTypes = [
+        'text/plain',
+        'application/pdf'
+      ];
+      
+      if (allowedTypes.includes(file.type)) {
+        setSelectedScriptFile(file);
+      } else {
+        alert('TXT 또는 PDF 파일만 업로드 가능합니다.');
         event.target.value = ''; // 입력 초기화
       }
     }
@@ -171,6 +190,61 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* 발표 대본 세팅 섹션 */}
+        <div className="relative">
+          <div className="flex items-center mb-4">
+            <CheckCircle className="w-6 h-6 text-green-400 mr-2" />
+            <h2 className="text-neutral-200 text-xl font-bold font-['Golos_Text']">발표 대본 세팅</h2>
+          </div>
+          
+          <div className="bg-neutral-600 rounded-[10px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] p-6 h-52 flex flex-col items-center justify-center">
+            {selectedScriptFile ? (
+              // 파일이 업로드된 경우
+              <div className="flex flex-col items-center">
+                <FileText className="w-12 h-12 text-green-400 mb-4" />
+                <p className="text-stone-300 text-base font-semibold font-['Golos_Text'] text-center mb-2">
+                  업로드 완료!
+                </p>
+                <p className="text-neutral-400 text-sm font-medium font-['Golos_Text'] text-center mb-4 break-all">
+                  {selectedScriptFile.name}
+                </p>
+                <button
+                  onClick={() => setSelectedScriptFile(null)}
+                  className="bg-neutral-700 rounded-[10px] border border-neutral-500 px-4 py-2 cursor-pointer hover:bg-neutral-600 transition-colors flex items-center"
+                >
+                  <X className="w-4 h-4 text-stone-400 mr-2" />
+                  <span className="text-neutral-400 text-sm font-semibold font-['Golos_Text']">파일 제거</span>
+                </button>
+              </div>
+            ) : (
+              // 파일이 업로드되지 않은 경우
+              <>
+                <p className="text-stone-300 text-base font-semibold font-['Golos_Text'] text-center mb-4">
+                  여기에서 발표 대본을 업로드해주세요!
+                </p>
+                
+                <input
+                  type="file"
+                  accept=".txt,.pdf"
+                  onChange={handleScriptFileChange}
+                  className="hidden"
+                  id="script-file-upload"
+                />
+                <label
+                  htmlFor="script-file-upload"
+                  className="bg-neutral-600 rounded-[10px] border border-green-400 px-6 py-3 cursor-pointer hover:bg-neutral-500 transition-colors flex items-center"
+                >
+                  <Upload className="w-4 h-4 text-stone-400 mr-2" />
+                  <span className="text-neutral-500 text-base font-semibold font-['Golos_Text']">발표 대본 업로드</span>
+                </label>
+                <p className="text-neutral-500 text-xs font-medium font-['Golos_Text'] text-center mt-2">
+                  TXT, PDF 파일만 지원
+                </p>
+              </>
+            )}
           </div>
         </div>
 
