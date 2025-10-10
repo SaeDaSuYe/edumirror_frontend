@@ -1,9 +1,8 @@
-import React from 'react';
-import LoginButton from './LoginButton';
-import SocialLogin from './SocialLogin';
+import React, { useRef, useState } from 'react';
 import appLogo from '../assets/app-logo.svg';
 import textLogo from '../assets/login-text-logo.svg';
 import googleIcon from '../assets/google-login.svg';
+import { authService, TokenManager } from '../api';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -13,6 +12,46 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogleLogin, onSignUpClick }) => {
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleLogin = async () => {
+    const email = emailInputRef.current?.value;
+    const password = passwordInputRef.current?.value;
+
+    if (!email || !password) {
+      setErrorMessage('이메일과 비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (response.status === 'success' && response.data) {
+        // 토큰 저장
+        TokenManager.setAccessToken(response.data.access_token);
+        if (response.data.refresh_token) {
+          TokenManager.setRefreshToken(response.data.refresh_token);
+        }
+        
+        console.log('✅ 로그인 성공!');
+        onLogin(); // 다음 페이지로 이동
+      } else {
+        setErrorMessage(response.error || '로그인에 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('❌ 로그인 에러:', error);
+      setErrorMessage('네트워크 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#74CD79] flex flex-col items-center justify-center px-4">
       {/* 상단 상태바 */}
@@ -59,23 +98,39 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
           </div>
         </div>
 
+        {/* 에러 메시지 */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-2xl text-sm text-center">
+            {errorMessage}
+          </div>
+        )}
+
         {/* 입력 필드들 */}
         <div className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm text-gray-600 mb-2 px-2 text-left">아이디</label>
+            <label className="block text-sm text-gray-600 mb-2 px-2 text-left">이메일</label>
             <input 
-              type="text" 
-              placeholder="id"
+              ref={emailInputRef}
+              type="email" 
+              placeholder="example@email.com"
               className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              disabled={isLoading}
             />
           </div>
           
           <div>
             <label className="block text-sm text-gray-600 mb-2 px-2 text-left">비밀번호</label>
             <input 
+              ref={passwordInputRef}
               type="password" 
               placeholder="password"
               className="w-full px-4 py-3 border border-gray-200 rounded-[30px] bg-gray-50 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#74CD79] focus:border-transparent"
+              disabled={isLoading}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleLogin();
+                }
+              }}
             />
           </div>
         </div>
@@ -83,15 +138,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
         {/* 로그인 버튼들 */}
         <div className="space-y-3 mb-6">
           <button 
-            onClick={onLogin}
-            className="w-full bg-[#74CD79] text-white py-3 rounded-[30px] font-medium hover:bg-[#5FB366] transition-colors"
+            onClick={handleLogin}
+            disabled={isLoading}
+            className={`w-full py-3 rounded-[30px] font-medium transition-colors ${
+              isLoading 
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                : 'bg-[#74CD79] text-white hover:bg-[#5FB366]'
+            }`}
           >
-            로그인
+            {isLoading ? '로그인 중...' : '로그인'}
           </button>
           
           <button 
             onClick={onTeacherLogin}
-            className="w-full bg-white border-2 border-[#74CD79] text-[#74CD79] py-3 rounded-[30px] font-medium hover:bg-[#74CD79] hover:text-white transition-colors"
+            disabled={isLoading}
+            className={`w-full py-3 rounded-[30px] font-medium transition-colors ${
+              isLoading 
+                ? 'bg-gray-200 border-2 border-gray-300 text-gray-400 cursor-not-allowed'
+                : 'bg-white border-2 border-[#74CD79] text-[#74CD79] hover:bg-[#74CD79] hover:text-white'
+            }`}
           >
             교사/부모 계정으로 체험하기
           </button>

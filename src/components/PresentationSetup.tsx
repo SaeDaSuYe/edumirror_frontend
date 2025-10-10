@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Upload, FileText, Camera, Settings, Mic, CheckCircle, ChevronDown, X } from 'lucide-react';
+import { sessionService } from '../api';
 
 interface PresentationSetupProps {
   onBackClick: () => void;
-  onStartPresentation: (file?: File) => void;
+  onStartPresentation: (file?: File, sessionData?: any) => void;
 }
 
 const PresentationSetup: React.FC<PresentationSetupProps> = ({
@@ -21,6 +22,8 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
   const [auditoriumNoise, setAuditoriumNoise] = useState(true);
   const [qaResponse, setQaResponse] = useState(true);
   const [aiQuestionTiming, setAiQuestionTiming] = useState('during'); // 'during' or 'after'
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -113,8 +116,84 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
     };
   }, [cameraStream]);
 
-  const handleStartPresentation = () => {
-    onStartPresentation(selectedFile || undefined);
+  const handleStartPresentation = async () => {
+    if (!presentationName.trim()) {
+      setErrorMessage('발표 이름을 입력해주세요.');
+      return;
+    }
+
+    if (!presentationContent.trim()) {
+      setErrorMessage('발표 내용을 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      // 1. 세션 생성
+      const sessionData = {
+        title: presentationName,
+        theme: selectedEnvironment,
+        environment_noise: auditoriumNoise ? 'auditorium' : 'quiet',
+        ai_questions_enabled: true,
+        question_count: 3
+      };
+
+      console.log('🎯 세션 생성 중...', sessionData);
+      const sessionResponse = await sessionService.createSession(sessionData);
+      
+      if (sessionResponse.status !== 'success' || !sessionResponse.data) {
+        throw new Error(sessionResponse.error || '세션 생성에 실패했습니다.');
+      }
+
+      const { session_id, websocket_url } = sessionResponse.data;
+      console.log('✅ 세션 생성 완료:', session_id);
+
+      // 2. 발표 자료 업로드 (선택사항)
+      if (selectedFile) {
+        console.log('📁 발표 자료 업로드 중...', selectedFile.name);
+        
+        // 대본 텍스트 준비 (선택사항)
+        let scriptText = presentationContent;
+        if (selectedScriptFile) {
+          // TODO: 실제로는 파일 내용을 읽어야 함
+          scriptText += ' (대본 파일 포함)';
+        }
+
+        const uploadResponse = await sessionService.uploadMaterial(
+          session_id, 
+          selectedFile,
+          scriptText
+        );
+
+        if (uploadResponse.status !== 'success') {
+          console.warn('⚠️ 파일 업로드 실패:', uploadResponse.error);
+          // 파일 업로드 실패해도 세션은 진행 가능
+        } else {
+          console.log('✅ 파일 업로드 완료!');
+        }
+      }
+
+      // 3. 발표 시작 페이지로 이동
+      const completeSessionData = {
+        session_id,
+        websocket_url,
+        title: presentationName,
+        content: presentationContent,
+        theme: selectedEnvironment,
+        ai_questions_enabled: aiQuestionTiming === 'during',
+        file: selectedFile
+      };
+
+      onStartPresentation(selectedFile || undefined, completeSessionData);
+      
+    } catch (error) {
+      console.error('❌ 발표 준비 에러:', error);
+      setErrorMessage(error instanceof Error ? error.message : '발표 준비 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -149,6 +228,13 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
       {/* 메인 컨텐츠 스크롤 영역 */}
       <div className="bg-[#404040] flex-1 overflow-y-auto px-7 py-6 space-y-8">
         
+        {/* 에러 메시지 */}
+        {errorMessage && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl text-sm text-center">
+            {errorMessage}
+          </div>
+        )}
+        
         {/* 발표 정보 섹션 */}
         <div className="relative">
           <div className="flex items-center mb-4">
@@ -169,7 +255,8 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
                   value={presentationName}
                   onChange={(e) => setPresentationName(e.target.value)}
                   placeholder="S4-1 본선 발표"
-                  className="w-full bg-transparent text-neutral-400 text-base font-medium font-['Golos_Text'] outline-none placeholder:text-neutral-500"
+                  disabled={isLoading}
+                  className="w-full bg-transparent text-neutral-400 text-base font-medium font-['Golos_Text'] outline-none placeholder:text-neutral-500 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -186,7 +273,8 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
                   value={presentationContent}
                   onChange={(e) => setPresentationContent(e.target.value)}
                   placeholder="S4-1팀의 K 해커톤 본선 발표 연습"
-                  className="w-full bg-transparent text-neutral-400 text-base font-medium font-['Golos_Text'] outline-none placeholder:text-neutral-500"
+                  disabled={isLoading}
+                  className="w-full bg-transparent text-neutral-400 text-base font-medium font-['Golos_Text'] outline-none placeholder:text-neutral-500 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -506,9 +594,16 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
         <div className="pb-6">
           <button
             onClick={handleStartPresentation}
-            className="w-44 h-12 bg-green-600 rounded-[20px] mx-auto block"
+            disabled={isLoading}
+            className={`w-44 h-12 rounded-[20px] mx-auto block transition-colors ${
+              isLoading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
           >
-            <span className="text-white text-base font-bold font-['Golos_Text']">준비 완료!</span>
+            <span className="text-white text-base font-bold font-['Golos_Text']">
+              {isLoading ? '준비 중...' : '준비 완료!'}
+            </span>
           </button>
         </div>
       </div>

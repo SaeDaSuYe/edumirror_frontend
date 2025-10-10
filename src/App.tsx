@@ -39,6 +39,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('splash');
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   // 스플래쉬 화면에서 자동으로 로그인 화면으로 이동
   React.useEffect(() => {
@@ -107,7 +108,8 @@ function App() {
   };
 
   // 발표 관련
-  const handleStartPresentation = () => {
+  const handleStartPresentation = (file?: File) => {
+    if (file) setUploadedFile(file);
     setCurrentPage('presentation-simulation');
   };
 
@@ -240,6 +242,7 @@ function App() {
           <PresentationSimulation 
             onBack={handleBackToPresentationSetup}
             onComplete={handlePresentationComplete}
+            uploadedFile={uploadedFile}
           />
         );
         
@@ -326,7 +329,7 @@ function App() {
     <div className="App w-full bg-white min-h-screen relative">
       {/* 개발 환경에서만 보이는 디버그 네비게이션 */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 z-50 space-y-1 max-h-screen overflow-y-auto">
+        <div className="fixed top-0 right-4 z-50 space-y-1 max-h-screen overflow-y-auto">
           <button 
             onClick={() => setCurrentPage('splash')}
             className="block px-2 py-1 bg-gray-500 text-white text-xs rounded text-center w-20"
