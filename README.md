@@ -54,17 +54,16 @@ AI 기반 발표 진단 플랫폼 "에듀미러"의 프론트엔드 애플리케
 ### 필수 요구사항
 - Node.js 18+ 
 - npm 또는 yarn
+- 백엔드 서버 실행 필요 (http://localhost:8000)
 
 ### 설치
 ```bash
 # 의존성 설치
 npm install
 
-# 추가 라이브러리 설치 (아직 package.json에 없는 경우)
-npm install lucide-react recharts tailwindcss autoprefixer postcss
-
-# Tailwind CSS 설정 (이미 설정됨)
-npx tailwindcss init -p
+# 환경 변수 설정
+cp .env.example .env
+# .env 파일을 열어서 백엔드 서버 주소 확인/수정
 ```
 
 ### 개발 서버 실행
@@ -79,10 +78,21 @@ npm run dev
 npm run build
 ```
 
+### ⚠️ 백엔드 연동 필요
+프론트엔드 실행 전에 백엔드 서버가 실행되어 있어야 합니다.
+자세한 내용은 `BACKEND_SETUP_GUIDE.md` 참고
+
 ## 📁 프로젝트 구조
 
 ```
 src/
+├── api/                      # 🆕 API 연동 레이어
+│   ├── config.ts            # API 설정 및 엔드포인트
+│   ├── client.ts            # HTTP 클라이언트
+│   ├── authService.ts       # 인증 API
+│   ├── sessionService.ts    # 세션 API
+│   ├── analysisService.ts   # 분석 API
+│   └── index.ts            # 통합 export
 ├── components/
 │   ├── SplashScreen.tsx      # 스플래쉬 화면
 │   ├── Dashboard.tsx         # 메인 대시보드
@@ -93,6 +103,11 @@ src/
 ├── App.tsx                   # 메인 앱 컴포넌트
 ├── main.tsx                  # 앱 진입점
 └── index.css                 # 전역 스타일
+
+# 루트 디렉토리
+├── .env.example              # 환경 변수 템플릿
+├── API_INTEGRATION_GUIDE.md  # API 연동 가이드
+└── BACKEND_SETUP_GUIDE.md    # 백엔드 설정 가이드
 ```
 
 ## 🎨 디자인 시스템
@@ -116,15 +131,26 @@ src/
 
 ## 📝 다음 단계
 
+### ✅ 완료된 작업
+- [x] API 클라이언트 구조 설계
+- [x] 환경 변수 설정
+- [x] JWT 토큰 기반 인증 시스템
+- [x] 인증/세션/분석 API 서비스 구현
+
+### 🔄 진행 중 (백엔드 준비 대기)
+- [ ] 백엔드 CORS 설정 확인
+- [ ] API 엔드포인트 동작 테스트
+- [ ] 컴포넌트에 실제 API 연동
+
 ### 즉시 필요한 작업
+- [ ] LoginPage에 실제 API 호출 적용
+- [ ] SignUpPage API 연동
+- [ ] PresentationSetup 파일 업로드 연동
 - [ ] React Router 도입으로 정식 라우팅 구현
 - [ ] Recharts를 활용한 실제 데이터 시각화
-- [ ] Lucide React 아이콘으로 임시 이모지 교체
-- [ ] AI 분석 결과 화면 구현
-- [ ] 교사/부모용 대시보드 구현
 
 ### 기능 확장
-- [ ] 백엔드 API 연동
+- [ ] WebSocket 실시간 통신 구현
 - [ ] WebRTC를 활용한 실시간 녹화
 - [ ] MediaPipe 비언어 분석 연동
 - [ ] 반응형 디자인 완성
