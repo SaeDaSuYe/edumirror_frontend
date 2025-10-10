@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Play, Pause, Volume2, TrendingUp, Eye, BarChart3, Calendar, Award, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Play, Pause, Volume2, TrendingUp, Eye, BarChart3, Calendar, Award, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { Plus } from 'lucide-react';
+import { sessionService, type UserSessionItem } from '../api';
+import { analysisService } from '../api';
 
 interface PresentationHistoryProps {
   onRecordClick?: (record: any) => void;
@@ -15,64 +17,37 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
 }) => {
   const [selectedRecord, setSelectedRecord] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [presentations, setPresentations] = useState<UserSessionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedPresentationDetail, setSelectedPresentationDetail] = useState<any>(null);
 
-  // 더미 데이터
-  const presentations = [
-    {
-      id: 'session_001',
-      date: '2024-09-14',
-      title: '생물학 유전자 발표',
-      score: 85,
-      duration: 750, // 12분 30초
-      status: 'excellent',
-      scores: {
-        expression: 82,
-        understanding: 89,
-        voice: 80,
-        gesture: 75,
-        eye_contact: 88
-      },
-      feedback: '시선 처리가 크게 향상되었습니다. 발화 속도 조절에 더 신경쓰면 좋겠습니다.',
-      improvements: ['시선 처리 향상', '내용 이해도 우수'],
-      areas_to_focus: ['발화 속도 조절', '제스처 활용']
-    },
-    {
-      id: 'session_002',
-      date: '2024-09-10',
-      title: '수학 함수의 이해',
-      score: 78,
-      duration: 920, // 15분 20초
-      status: 'good',
-      scores: {
-        expression: 75,
-        understanding: 85,
-        voice: 78,
-        gesture: 72,
-        eye_contact: 75
-      },
-      feedback: '논리적 구성이 뛰어났습니다. 목소리 크기와 시선 분산에 주의하세요.',
-      improvements: ['논리적 구성'],
-      areas_to_focus: ['목소리 크기', '시선 분산']
-    },
-    {
-      id: 'session_003',
-      date: '2024-09-07',
-      title: '역사 임진왜란의 배경',
-      score: 82,
-      duration: 645, // 10분 45초
-      status: 'good',
-      scores: {
-        expression: 80,
-        understanding: 88,
-        voice: 82,
-        gesture: 78,
-        eye_contact: 80
-      },
-      feedback: '내용 이해도와 자신감이 좋았습니다. 발표 자료 활용을 더 개선하면 좋겠습니다.',
-      improvements: ['내용 이해도', '자신감'],
-      areas_to_focus: ['발표 자료 활용']
-    }
-  ];
+  // API 데이터 로드
+  useEffect(() => {
+    const loadPresentations = async () => {
+      try {
+        setLoading(true);
+        console.log('🔍 발표 기록 조회 중...');
+        
+        const response = await sessionService.getUserSessions();
+        console.log('✅ 발표 기록 로드 완료:', response);
+        
+        if (response.status === 'success' && response.data) {
+          setPresentations(response.data.sessions);
+          setError(null);
+        } else {
+          setError('발표 기록을 불러올 수 없습니다.');
+        }
+      } catch (error) {
+        console.error('❌ 발표 기록 로드 실패:', error);
+        setError(error instanceof Error ? error.message : '발표 기록을 불러올 수 없습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPresentations();
+  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -106,7 +81,57 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
     }
   };
 
-  const selectedPresentation = presentations.find(p => p.id === selectedRecord);
+  // 세션 상세 정보 로드
+  useEffect(() => {
+    const loadSessionDetail = async () => {
+      if (!selectedRecord) {
+        setSelectedPresentationDetail(null);
+        return;
+      }
+
+      try {
+        console.log('🔍 세션 상세 정보 로드 중:', selectedRecord);
+        const analysisResult = await analysisService.getDetailedAnalysisResult(selectedRecord);
+        
+        // API 데이터를 화면 표시용으로 변환
+        const displayData = {
+          session_id: analysisResult.session_id,
+          title: `발표 세션 ${analysisResult.session_id.slice(-8)}`,
+          date: analysisResult.analysis_completed_at,
+          duration: 750, // 임시 duration
+          score: analysisResult.overall_score,
+          scores: {
+            expression: analysisResult.detailed_scores.expression,
+            understanding: analysisResult.detailed_scores.comprehension,
+            voice: analysisResult.detailed_scores.delivery,
+            gesture: analysisResult.detailed_scores.delivery,
+            eye_contact: analysisResult.detailed_scores.engagement
+          },
+          feedback: analysisResult.suggestions.length > 0 
+            ? analysisResult.suggestions[0].description 
+            : '분석 결과를 확인해주세요.',
+          improvements: analysisResult.suggestions
+            .filter(s => s.priority === 'high')
+            .map(s => s.description)
+            .slice(0, 3),
+          areas_to_focus: analysisResult.suggestions
+            .filter(s => s.priority === 'medium')
+            .map(s => s.description)
+            .slice(0, 3)
+        };
+        
+        setSelectedPresentationDetail(displayData);
+        console.log('✅ 세션 상세 정보 로드 완료:', displayData);
+      } catch (error) {
+        console.error('❌ 세션 상세 정보 로드 실패:', error);
+        setSelectedPresentationDetail(null);
+      }
+    };
+
+    loadSessionDetail();
+  }, [selectedRecord]);
+
+  const selectedPresentation = selectedPresentationDetail;
 
   if (selectedRecord && selectedPresentation) {
     // 상세 분석 화면
@@ -255,7 +280,7 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
                   잘한 점
                 </h4>
                 <div className="space-y-1">
-                  {selectedPresentation.improvements.map((improvement, index) => (
+                  {selectedPresentation.improvements.map((improvement: string, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
                       <div className="w-1 h-1 bg-green-500 rounded-full"></div>
                       <span className="text-sm text-green-700">{improvement}</span>
@@ -270,7 +295,7 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
                   개선 포인트
                 </h4>
                 <div className="space-y-1">
-                  {selectedPresentation.areas_to_focus.map((area, index) => (
+                  {selectedPresentation.areas_to_focus.map((area: string, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
                       <div className="w-1 h-1 bg-red-500 rounded-full"></div>
                       <span className="text-sm text-red-700">{area}</span>
@@ -342,72 +367,98 @@ const PresentationHistory: React.FC<PresentationHistoryProps> = ({
 
       {/* 성과 요약 */}
       <div className="p-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">성과 요약</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-[#74CD79]">{presentations.length}</div>
-              <div className="text-sm text-gray-500">총 발표 수</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {Math.round(presentations.reduce((sum, p) => sum + p.score, 0) / presentations.length)}
-              </div>
-              <div className="text-sm text-gray-500">평균 점수</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {Math.max(...presentations.map(p => p.score))}
-              </div>
-              <div className="text-sm text-gray-500">최고 점수</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {presentations.filter(p => p.status === 'excellent').length}
-              </div>
-              <div className="text-sm text-gray-500">우수 발표</div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-[#74CD79]" />
+            <span className="ml-2 text-gray-600">발표 기록을 불러오는 중...</span>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+              <span className="text-red-800">{error}</span>
             </div>
           </div>
-        </div>
-
-        {/* 발표 기록 리스트 */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-gray-900">발표 기록</h3>
-          {presentations.map((presentation) => (
-            <div 
-              key={presentation.id}
-              onClick={() => setSelectedRecord(presentation.id)}
-              className={`bg-white rounded-[20px] p-4 border-l-4 cursor-pointer hover:shadow-md transition-all ${getLeftBorderColor(presentation.status)} border border-gray-200`}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-1">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">{formatDate(presentation.date)}</span>
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-500">{formatTime(presentation.duration)}</span>
-                  </div>
-                  <h3 className="text-left text-gray-900 font-medium text-base mb-2">
-                    {presentation.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-1">
-                    {presentation.improvements.slice(0, 2).map((improvement, index) => (
-                      <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                        {improvement}
-                      </span>
-                    ))}
-                  </div>
+        ) : (
+          <>
+            <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">성과 요약</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-[#74CD79]">{presentations.length}</div>
+                  <div className="text-sm text-gray-500">총 발표 수</div>
                 </div>
-                <div className="ml-4 text-center">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white ${getScoreBgColor(presentation.score)}`}>
-                    {presentation.score}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {presentations.length > 0 
+                      ? Math.round(presentations.reduce((sum, p) => sum + (p.total_score || 0), 0) / presentations.length)
+                      : 0
+                    }
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">점</div>
+                  <div className="text-sm text-gray-500">평균 점수</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {presentations.length > 0 
+                      ? Math.max(...presentations.map(p => p.total_score || 0))
+                      : 0
+                    }
+                  </div>
+                  <div className="text-sm text-gray-500">최고 점수</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {presentations.filter(p => (p.total_score || 0) >= 85).length}
+                  </div>
+                  <div className="text-sm text-gray-500">우수 발표</div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </>
+        )}
+
+            {/* 발표 기록 리스트 */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-900">발표 기록</h3>
+              {presentations.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  아직 발표 기록이 없습니다.
+                </div>
+              ) : (
+                presentations.map((presentation) => (
+                  <div 
+                    key={presentation.session_id}
+                    onClick={() => setSelectedRecord(presentation.session_id)}
+                    className={`bg-white rounded-[20px] p-4 border-l-4 cursor-pointer hover:shadow-md transition-all ${getLeftBorderColor(presentation.status)} border border-gray-200`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-1">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-500">{formatDate(presentation.created_at)}</span>
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <span className="text-sm text-gray-500">{formatTime(presentation.duration || 0)}</span>
+                        </div>
+                        <h3 className="text-left text-gray-900 font-medium text-base mb-2">
+                          {presentation.title}
+                        </h3>
+                        <div className="flex flex-wrap gap-1">
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            {presentation.status}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-4 text-center">
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white ${getScoreBgColor(presentation.total_score || 0)}`}>
+                          {presentation.total_score || 0}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">점</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
       </div>
     </div>
   );

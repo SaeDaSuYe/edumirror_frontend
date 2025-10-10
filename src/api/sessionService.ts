@@ -36,6 +36,22 @@ export interface SessionDetailResponse {
   // ... 기타 세션 상세 정보
 }
 
+export interface UserSessionItem {
+  session_id: string;
+  title: string;
+  created_at: string;
+  status: string;
+  duration?: number;
+  total_score?: number;
+}
+
+export interface UserSessionsResponse {
+  sessions: UserSessionItem[];
+  total_count: number;
+  page: number;
+  page_size: number;
+}
+
 // 발표 세션 API 서비스
 export const sessionService = {
   // 새 세션 생성
@@ -74,6 +90,13 @@ export const sessionService = {
   async getSessionDetail(sessionId: string) {
     return apiClient.get<SessionDetailResponse>(
       API_ENDPOINTS.SESSIONS.DETAIL(sessionId)
+    );
+  },
+
+  // 사용자 발표 기록 조회
+  async getUserSessions(page: number = 1, pageSize: number = 20) {
+    return apiClient.get<UserSessionsResponse>(
+      `${API_ENDPOINTS.PROFILE.HISTORY}?page=${page}&page_size=${pageSize}`
     );
   },
 };

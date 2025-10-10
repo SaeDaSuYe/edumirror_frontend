@@ -1,77 +1,90 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Play, Pause, Volume2, TrendingUp, TrendingDown, Target, Eye, Mic, Users, Clock, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Play, Pause, Volume2, TrendingUp, Target, Eye, Mic, Users, Award, Loader2, AlertCircle } from 'lucide-react';
+import { analysisService } from '../api/analysisService';
+import type { DetailedAnalysisResult } from '../api/analysisService';
 
 interface StudentPresentationResultProps {
+  sessionId: string;
   onBackClick: () => void;
   onRetryClick: () => void;
 }
 
 const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
+  sessionId,
   onBackClick,
   onRetryClick
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedTab, setSelectedTab] = useState<'overview' | 'detailed' | 'suggestions'>('overview');
+  const [analysisResult, setAnalysisResult] = useState<DetailedAnalysisResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // 더미 분석 결과 데이터
-  const analysisResult = {
-    session_id: 'session_latest',
-    title: '생물학 유전자 발표',
-    date: '2024-09-17T14:30:00Z',
-    duration: 750, // 12분 30초
-    overall_score: 85,
-    scores: {
-      expression: 82,
-      understanding: 89,
-      voice_quality: 80,
-      gesture: 75,
-      eye_contact: 88,
-      content_structure: 87
-    },
-    improvements: [
-      {
-        category: '발화 속도',
-        current_score: 70,
-        target_score: 85,
-        feedback: '평균보다 20% 빠른 속도로 말하고 있습니다. 천천히 말하면 더 명확하게 전달될 것입니다.',
-        tips: ['문장 사이에 1-2초 간격 두기', '중요한 단어는 더 천천히 강조', '호흡을 의식적으로 조절하기']
+  // API 결과를 컴포넌트에서 사용하는 형태로 변환
+  const getDisplayData = () => {
+    if (!analysisResult) return null;
+    
+    return {
+      session_id: analysisResult.session_id,
+      title: `발표 세션 ${analysisResult.session_id.slice(-8)}`, // 임시 제목
+      date: analysisResult.analysis_completed_at,
+      duration: 750, // 임시 duration (API에 duration 필드가 없음)
+      overall_score: analysisResult.overall_score,
+      scores: {
+        expression: analysisResult.detailed_scores.expression,
+        understanding: analysisResult.detailed_scores.comprehension,
+        voice_quality: analysisResult.detailed_scores.delivery,
+        gesture: analysisResult.detailed_scores.delivery, // 제스처는 delivery 점수 사용
+        eye_contact: analysisResult.detailed_scores.engagement,
+        content_structure: analysisResult.detailed_scores.comprehension
       },
-      {
-        category: '제스처 활용',
-        current_score: 75,
-        target_score: 90,
-        feedback: '손동작이 부족하여 설명력이 떨어집니다. 적절한 제스처로 내용을 강조해보세요.',
-        tips: ['설명하는 내용에 맞는 손동작 추가', '감정 표현을 위한 제스처 활용', '자연스러운 움직임 연습']
-      }
-    ],
-    strengths: [
-      '시선 처리가 자연스럽고 청중과의 소통이 원활했습니다',
-      '내용 이해도가 뛰어나며 논리적으로 구성되었습니다',
-      '목소리 톤이 안정적이고 명료합니다'
-    ],
-    timeline_feedback: [
-      {
-        timestamp: 125,
-        type: 'improvement',
-        message: '발화 속도가 빨라지고 있습니다. 천천히 말해보세요.'
-      },
-      {
-        timestamp: 245,
-        type: 'positive',
-        message: '시선 처리가 훌륭합니다! 청중과의 아이컨택이 자연스럽네요.'
-      },
-      {
-        timestamp: 340,
-        type: 'improvement',
-        message: '제스처를 더 활용하면 설명이 더 생동감 있어질 것 같습니다.'
-      },
-      {
-        timestamp: 480,
-        type: 'positive',
-        message: '복잡한 개념을 이해하기 쉽게 설명하고 있습니다.'
-      }
-    ]
+      strengths: analysisResult.suggestions
+        .filter(s => s.priority === 'high')
+        .map(s => s.description)
+        .slice(0, 3), // 상위 3개만
+      improvements: analysisResult.suggestions
+        .filter(s => s.priority === 'medium' || s.priority === 'high')
+        .map(s => ({
+          category: s.category,
+          current_score: 70, // 임시 점수
+          target_score: 85, // 임시 목표 점수
+          feedback: s.description,
+          tips: [s.recommendation]
+        }))
+        .slice(0, 2) // 상위 2개만
+    };
   };
+
+  const displayData = getDisplayData();
+
+  // API를 통해 분석 결과 로드
+  useEffect(() => {
+    const loadAnalysisResult = async () => {
+      if (!sessionId) {
+        setError('세션 ID가 제공되지 않았습니다.');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        console.log('🔍 분석 결과 조회:', sessionId);
+        
+        const result = await analysisService.getDetailedAnalysisResult(sessionId);
+        console.log('✅ 분석 결과 로드 완료:', result);
+        
+        setAnalysisResult(result);
+        setError(null);
+      } catch (error) {
+        console.error('❌ 분석 결과 로드 실패:', error);
+        setError(error instanceof Error ? error.message : '분석 결과를 불러올 수 없습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnalysisResult();
+  }, [sessionId]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -112,13 +125,13 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
               stroke="#74CD79"
               strokeWidth="8"
               fill="none"
-              strokeDasharray={`${2 * Math.PI * 50 * (analysisResult.overall_score / 100)} ${2 * Math.PI * 50}`}
+              strokeDasharray={`${2 * Math.PI * 50 * ((displayData?.overall_score || 0) / 100)} ${2 * Math.PI * 50}`}
               className="transition-all duration-1000 ease-out"
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900">{analysisResult.overall_score}</div>
+              <div className="text-3xl font-bold text-gray-900">{displayData?.overall_score || 0}</div>
               <div className="text-sm text-gray-500">점</div>
             </div>
           </div>
@@ -131,43 +144,43 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="text-center p-4 bg-blue-50 rounded-lg">
           <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.expression)}`}>
-            {analysisResult.scores.expression}
+          <div className={`text-xl font-bold ${getScoreColor(analysisResult?.detailed_scores.expression || 0)}`}>
+            {analysisResult?.detailed_scores.expression || 0}
           </div>
           <div className="text-sm text-gray-600">표현력</div>
         </div>
         <div className="text-center p-4 bg-green-50 rounded-lg">
           <Target className="w-6 h-6 text-green-600 mx-auto mb-2" />
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.understanding)}`}>
-            {analysisResult.scores.understanding}
+          <div className={`text-xl font-bold ${getScoreColor(displayData?.scores?.understanding || 0)}`}>
+            {displayData?.scores?.understanding || 0}
           </div>
           <div className="text-sm text-gray-600">이해도</div>
         </div>
         <div className="text-center p-4 bg-purple-50 rounded-lg">
           <Mic className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.voice_quality)}`}>
-            {analysisResult.scores.voice_quality}
+          <div className={`text-xl font-bold ${getScoreColor(displayData?.scores?.voice_quality || 0)}`}>
+            {displayData?.scores?.voice_quality || 0}
           </div>
           <div className="text-sm text-gray-600">음성</div>
         </div>
         <div className="text-center p-4 bg-orange-50 rounded-lg">
           <div className="w-6 h-6 text-orange-600 mx-auto mb-2">🤚</div>
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.gesture)}`}>
-            {analysisResult.scores.gesture}
+          <div className={`text-xl font-bold ${getScoreColor(displayData?.scores?.gesture || 0)}`}>
+            {displayData?.scores?.gesture || 0}
           </div>
           <div className="text-sm text-gray-600">제스처</div>
         </div>
         <div className="text-center p-4 bg-indigo-50 rounded-lg">
           <Eye className="w-6 h-6 text-indigo-600 mx-auto mb-2" />
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.eye_contact)}`}>
-            {analysisResult.scores.eye_contact}
+          <div className={`text-xl font-bold ${getScoreColor(displayData?.scores?.eye_contact || 0)}`}>
+            {displayData?.scores?.eye_contact || 0}
           </div>
           <div className="text-sm text-gray-600">시선처리</div>
         </div>
         <div className="text-center p-4 bg-pink-50 rounded-lg">
           <Award className="w-6 h-6 text-pink-600 mx-auto mb-2" />
-          <div className={`text-xl font-bold ${getScoreColor(analysisResult.scores.content_structure)}`}>
-            {analysisResult.scores.content_structure}
+          <div className={`text-xl font-bold ${getScoreColor(displayData?.scores?.content_structure || 0)}`}>
+            {displayData?.scores?.content_structure || 0}
           </div>
           <div className="text-sm text-gray-600">구성력</div>
         </div>
@@ -180,7 +193,7 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
           잘한 점
         </h3>
         <div className="space-y-2">
-          {analysisResult.strengths.map((strength, index) => (
+          {displayData?.strengths?.map((strength, index) => (
             <div key={index} className="flex items-start space-x-2">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
               <span className="text-green-700 text-sm">{strength}</span>
@@ -196,7 +209,7 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
       {/* 개선 포인트 */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900">개선 포인트</h3>
-        {analysisResult.improvements.map((improvement, index) => (
+        {displayData?.improvements?.map((improvement, index) => (
           <div key={index} className="border border-gray-200 rounded-lg p-4">
             <div className="flex justify-between items-center mb-3">
               <h4 className="font-medium text-gray-900">{improvement.category}</h4>
@@ -228,34 +241,13 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
         ))}
       </div>
 
-      {/* 타임라인 피드백 */}
+      {/* 타임라인 피드백 - 추후 구현 예정 */}
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">타임라인 피드백</h3>
-        <div className="space-y-3">
-          {analysisResult.timeline_feedback.map((feedback, index) => (
-            <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div className={`w-2 h-2 rounded-full mt-2 ${
-                feedback.type === 'positive' ? 'bg-green-500' : 'bg-red-500'
-              }`}></div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-medium text-gray-900">
-                    {formatTime(feedback.timestamp)}
-                  </span>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    feedback.type === 'positive' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {feedback.type === 'positive' ? '잘함' : '개선'}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-700">{feedback.message}</p>
-              </div>
-            </div>
-          ))}
+        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
+          타임라인 피드백 기능은 추후 업데이트될 예정입니다.
         </div>
+
       </div>
     </div>
   );
@@ -320,6 +312,68 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
     </div>
   );
 
+  // 로딩 상태
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-[#74CD79] animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">분석 결과 로딩 중</h2>
+          <p className="text-gray-600">AI가 분석한 결과를 불러오고 있습니다...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#FFFFFF] flex flex-col">
+        {/* 상단 헤더 */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onBackClick}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+            <div>
+              <h1 className="text-lg font-semibold text-gray-800">분석 결과</h1>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">결과를 불러올 수 없습니다</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-[#74CD79] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#5FB366] transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 분석 결과가 없는 경우
+  if (!analysisResult) {
+    return (
+      <div className="min-h-screen bg-[#FFFFFF] flex flex-col items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">분석 결과가 없습니다</h2>
+          <p className="text-gray-600">아직 분석이 완료되지 않았거나 결과를 찾을 수 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] flex flex-col">
       {/* 상단 상태바 */}
@@ -347,9 +401,9 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-left text-lg font-semibold text-gray-900">{analysisResult.title}</h1>
+            <h1 className="text-left text-lg font-semibold text-gray-900">{displayData?.title}</h1>
             <p className="text-left text-sm text-gray-500">
-              {formatTime(analysisResult.duration)} • 방금 완료됨
+              {formatTime(displayData?.duration || 0)} • 방금 완료됨
             </p>
           </div>
         </div>
@@ -388,7 +442,7 @@ const StudentPresentationResult: React.FC<StudentPresentationResultProps> = ({
                 </div>
                 
                 <div className="text-white text-sm">
-                  {formatTime(analysisResult.duration)}
+                  {formatTime(displayData?.duration || 0)}
                 </div>
                 
                 <button className="w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors">

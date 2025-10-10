@@ -108,8 +108,12 @@ function App() {
   };
 
   // 발표 관련
-  const handleStartPresentation = (file?: File) => {
+  const handleStartPresentation = (file?: File, sessionData?: any) => {
     if (file) setUploadedFile(file);
+    if (sessionData?.session_id) {
+      setSelectedSessionId(sessionData.session_id);
+      console.log('✅ 세션 ID 저장:', sessionData.session_id);
+    }
     setCurrentPage('presentation-simulation');
   };
 
@@ -249,6 +253,7 @@ function App() {
       case 'presentation-analysis':
         return (
           <PresentationAnalysis 
+            sessionId={selectedSessionId}
             onAnalysisComplete={handleAnalysisComplete}
           />
         );
@@ -256,6 +261,7 @@ function App() {
       case 'student-presentation-result':
         return (
           <StudentPresentationResult 
+            sessionId={selectedSessionId}
             onBackClick={handleBackFromResult}
             onRetryClick={handleRetryPresentation}
           />
