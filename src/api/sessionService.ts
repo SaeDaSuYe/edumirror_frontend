@@ -94,9 +94,11 @@ export const sessionService = {
   },
 
   // 사용자 발표 기록 조회
-  async getUserSessions(page: number = 1, pageSize: number = 20) {
-    return apiClient.get<UserSessionsResponse>(
-      `${API_ENDPOINTS.PROFILE.HISTORY}?page=${page}&page_size=${pageSize}`
-    );
+  async getUserSessions(page: number = 1, limit: number = 10, theme?: string): Promise<ApiResponse<UserSessionsResponse>> {
+    let url = `/my/sessions?page=${page}&limit=${limit}`;
+    if (theme) {
+      url += `&theme=${encodeURIComponent(theme)}`;
+    }
+    return apiClient.get<ApiResponse<UserSessionsResponse>>(url);
   },
 };

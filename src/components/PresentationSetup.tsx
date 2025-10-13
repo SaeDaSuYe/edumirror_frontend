@@ -82,6 +82,10 @@ const PresentationSetup: React.FC<PresentationSetupProps> = ({
       setCameraConnected(false);
     } else {
       // 카메라 연결
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('이 브라우저는 카메라 기능을 지원하지 않습니다. 최신 브라우저를 사용하거나, HTTPS 환경에서 접속해 주세요.');
+        return;
+      }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
           video: { 

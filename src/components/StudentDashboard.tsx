@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Home, MessageSquare, User, Plus, MoreVertical, Loader2, AlertCircle, FileText } from 'lucide-react';
 import springIcon from '../assets/note-spring.svg';
-import { sessionService, type UserSessionItem } from '../api';
+import { sessionService } from '../api';
 
 interface PresentationRecord {
   id: string;
@@ -35,12 +35,17 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         setLoading(true);
         console.log('🔍 발표 기록 조회 중...');
         
-        const response = await sessionService.getUserSessions();
+        // 새 API 호출 (page=1, limit=10)
+        const response = await sessionService.getUserSessions(1, 10);
         console.log('✅ 발표 기록 로드 완료:', response);
-        
-        if (response.status === 'success' && response.data) {
+  if (response && response.data && Array.isArray(response.data.sessions)) {
           // API 데이터를 PresentationRecord 형태로 변환
-          const records: PresentationRecord[] = response.data.sessions.map((session: UserSessionItem) => ({
+          const records: PresentationRecord[] = response.data.sessions.map((session: {
+            session_id: string;
+            title: string;
+            created_at: string;
+            total_score?: number;
+          }) => ({
             id: session.session_id,
             date: new Date(session.created_at).toLocaleDateString('ko-KR', {
               year: 'numeric',
@@ -52,7 +57,6 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
             status: (session.total_score || 0) >= 80 ? 'excellent' as const : 
                    (session.total_score || 0) >= 70 ? 'good' as const : 'normal' as const
           }));
-          
           setPresentationRecords(records);
           setError(null);
         } else {
