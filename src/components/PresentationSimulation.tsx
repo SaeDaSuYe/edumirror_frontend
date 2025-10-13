@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Mic, MicOff, Camera, CameraOff, Volume2, VolumeX, ChevronLeft, ChevronRight, Square, Play, Pause, StopCircle } from 'lucide-react';
 
+
 interface PresentationSimulationProps {
   onBack: () => void;
   onComplete?: () => void;
   uploadedFile?: File | null;
+  sessionId: string;
 }
 
-const PresentationSimulation: React.FC<PresentationSimulationProps> = ({ onBack, onComplete, uploadedFile }) => {
+const PresentationSimulation: React.FC<PresentationSimulationProps> = ({ onBack, onComplete, uploadedFile, sessionId }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isMicOn, setIsMicOn] = useState(true);
@@ -132,22 +134,52 @@ const PresentationSimulation: React.FC<PresentationSimulationProps> = ({ onBack,
     }
   }, [isRecording, isPaused, recordingTime]);
 
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    setIsPaused(false);
+
+  // 발표 시작 API 연동
+  const handleStartRecording = async () => {
+    if (!sessionId) return;
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`/api/sessions/${sessionId}/start`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.status === 'recording_started') {
+        setIsRecording(true);
+        setIsPaused(false);
+      } else {
+        alert('발표 시작에 실패했습니다.');
+      }
+    } catch (e) {
+      alert('발표 시작에 실패했습니다.');
+    }
   };
 
   const handlePauseRecording = () => {
     setIsPaused(!isPaused);
   };
 
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    setIsPaused(false);
-    setRecordingTime(0);
-    // 발표 완료 후 분석 화면으로 이동
-    if (onComplete) {
-      onComplete();
+  // 발표 종료 API 연동
+  const handleStopRecording = async () => {
+    if (!sessionId) return;
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await fetch(`/api/sessions/${sessionId}/end`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.status === 'session_completed') {
+        setIsRecording(false);
+        setIsPaused(false);
+        setRecordingTime(0);
+        if (onComplete) onComplete();
+      } else {
+        alert('발표 종료에 실패했습니다.');
+      }
+    } catch (e) {
+      alert('발표 종료에 실패했습니다.');
     }
   };
 
