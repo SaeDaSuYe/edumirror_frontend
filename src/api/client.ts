@@ -1,4 +1,4 @@
-import { API_CONFIG, ApiResponse, HttpMethod } from './config';
+import { API_CONFIG, HttpMethod, type ApiResponse } from './config';
 
 // 토큰 관리
 class TokenManager {

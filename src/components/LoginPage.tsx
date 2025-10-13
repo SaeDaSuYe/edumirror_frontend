@@ -32,11 +32,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onTeacherLogin, onGoogle
     try {
       const response = await authService.login({ email, password });
       
-      if (response.status === 'success' && response.data) {
+      if (response.status === 'success' && response.access_token) {
         // 토큰 저장
-        TokenManager.setAccessToken(response.data.access_token);
-        if (response.data.refresh_token) {
-          TokenManager.setRefreshToken(response.data.refresh_token);
+        TokenManager.setAccessToken(response.access_token);
+        if (response.refresh_token) {
+          TokenManager.setRefreshToken(response.refresh_token);
         }
         
         console.log('✅ 로그인 성공!');

@@ -75,11 +75,11 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ onSignUp, onBackToLogin }) => {
 
       const response = await authService.signUp(signUpData);
       
-      if (response.status === 'success' && response.data) {
+      if (response.status === 'success' && response.access_token) {
         // 토큰 저장
-        TokenManager.setAccessToken(response.data.access_token);
-        if (response.data.refresh_token) {
-          TokenManager.setRefreshToken(response.data.refresh_token);
+        TokenManager.setAccessToken(response.access_token);
+        if (response.refresh_token) {
+          TokenManager.setRefreshToken(response.refresh_token);
         }
         
         console.log('✅ 회원가입 성공!');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LoginPage from './components/LoginPage';
 import SplashScreen from './components/SplashScreen';
 import StudentDashboard from './components/StudentDashboard';
@@ -15,6 +15,7 @@ import TeacherImprovementChat from './components/TeacherImprovementChat';
 import TeacherPresentationHistory from './components/TeacherPresentationHistory';
 import PresentationAnalysis from './components/PresentationAnalysis';
 import StudentPresentationResult from './components/StudentPresentationResult';
+import { TokenManager } from './api';
 import './App.css';
 
 type PageType = 
@@ -40,32 +41,50 @@ function App() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // 초기 인증 상태 확인
+  useEffect(() => {
+    const token = TokenManager.getAccessToken();
+    if (token) {
+      setIsAuthenticated(true);
+      // 토큰이 있으면 바로 대시보드로
+      if (currentPage === 'splash' || currentPage === 'login') {
+        setCurrentPage('student-dashboard');
+      }
+    }
+  }, []);
 
   // 스플래쉬 화면에서 자동으로 로그인 화면으로 이동
-  React.useEffect(() => {
-    if (currentPage === 'splash') {
+  useEffect(() => {
+    if (currentPage === 'splash' && !isAuthenticated) {
       const timer = setTimeout(() => {
         setCurrentPage('login');
       }, 3000); // 3초 후 로그인 화면으로
       return () => clearTimeout(timer);
     }
-  }, [currentPage]);
+  }, [currentPage, isAuthenticated]);
 
-  // 로그인 처리
+  // 로그인 성공 처리
   const handleLogin = () => {
-    console.log('일반 로그인 클릭');
+    console.log('로그인 성공');
+    setIsAuthenticated(true);
     setCurrentPage('student-dashboard'); // 학생 로그인 후 학생 대시보드로
   };
 
   const handleTeacherLogin = () => {
-    console.log('교사/부모 계정 로그인 클릭');
+    console.log('교사 로그인 성공');
+    setIsAuthenticated(true);
     setCurrentPage('teacher-dashboard'); // 교사 대시보드로
   };
 
   const handleGoogleLogin = () => {
-    console.log('구글 로그인 클릭');
+    console.log('구글 로그인 성공');
+    setIsAuthenticated(true);
     setCurrentPage('student-dashboard');
   };
+
+
 
   // 회원가입 처리
   const handleSignUpClick = () => {
@@ -188,6 +207,8 @@ function App() {
 
   // 로그아웃
   const handleLogout = () => {
+    TokenManager.clearTokens();
+    setIsAuthenticated(false);
     setCurrentPage('login');
   };
 
@@ -334,7 +355,7 @@ function App() {
   return (
     <div className="App w-full bg-white min-h-screen relative">
       {/* 개발 환경에서만 보이는 디버그 네비게이션 */}
-      {process.env.NODE_ENV === 'development' && (
+      {import.meta.env.DEV && (
         <div className="fixed top-0 right-4 z-50 space-y-1 max-h-screen overflow-y-auto">
           <button 
             onClick={() => setCurrentPage('splash')}

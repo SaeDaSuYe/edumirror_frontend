@@ -1,6 +1,7 @@
-import React from 'react';
-import { Home, MessageSquare, User, Plus, MoreVertical } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, MessageSquare, User, Plus, MoreVertical, Loader2, AlertCircle, FileText } from 'lucide-react';
 import springIcon from '../assets/note-spring.svg';
+import { sessionService, type UserSessionItem } from '../api';
 
 interface PresentationRecord {
   id: string;
@@ -23,38 +24,52 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
   onProfileClick,
   onChatClick
 }) => {
-  const presentationRecords: PresentationRecord[] = [
-    {
-      id: '1',
-      date: '2024년 6월 25일',
-      title: '과학 발표 - 유전과 진화',
-      score: 85,
-      status: 'excellent'
-    },
-    {
-      id: '2',
-      date: '2024년 6월 20일',
-      title: '영어 프레젠테이션',
-      score: 78,
-      status: 'good'
-    },
-    {
-      id: '3',
-      date: '2024년 6월 15일',
-      title: '역사 발표 - 조선시대',
-      score: 82,
-      status: 'good'
-    },
-    {
-      id: '4',
-      date: '2024년 6월 10일',
-      title: '국어 시 낭송 발표',
-      score: 88,
-      status: 'excellent'
-    }
-  ];
+  const [presentationRecords, setPresentationRecords] = useState<PresentationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getScoreColor = (status: string) => {
+  // API 데이터 로드
+  useEffect(() => {
+    const loadPresentationRecords = async () => {
+      try {
+        setLoading(true);
+        console.log('🔍 발표 기록 조회 중...');
+        
+        const response = await sessionService.getUserSessions();
+        console.log('✅ 발표 기록 로드 완료:', response);
+        
+        if (response.status === 'success' && response.data) {
+          // API 데이터를 PresentationRecord 형태로 변환
+          const records: PresentationRecord[] = response.data.sessions.map((session: UserSessionItem) => ({
+            id: session.session_id,
+            date: new Date(session.created_at).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            title: session.title || `발표 ${session.session_id.slice(-8)}`,
+            score: session.total_score || 0,
+            status: (session.total_score || 0) >= 80 ? 'excellent' as const : 
+                   (session.total_score || 0) >= 70 ? 'good' as const : 'normal' as const
+          }));
+          
+          setPresentationRecords(records);
+          setError(null);
+        } else {
+          setError('발표 기록을 불러올 수 없습니다.');
+        }
+      } catch (error) {
+        console.error('❌ 발표 기록 로드 실패:', error);
+        setError('발표 기록을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPresentationRecords();
+  }, []);
+
+  const getScoreColor = (status: 'excellent' | 'good' | 'normal') => {
     switch (status) {
       case 'excellent':
         return 'bg-[#74CD79]';
@@ -95,60 +110,96 @@ const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </button>
       </div>
 
-      {/* 발표 기록 리스트 */}
+      {/* 발표 기록 영역 */}
       <div className="flex-1 py-6 px-5 space-y-6">
-        {presentationRecords.map((record) => (
-          <div
-            key={record.id}
-            onClick={() => onRecordClick(record)}
-            className="justify-center max-w-80 max-w-md mx-auto relative cursor-pointer hover:opacity-50 transition-opacity"
-          >
-            {/* 컨테이너 - 카드 높이 설정 */}
-            <div className="h-24 relative">
-              {/* 배경 그림자 카드 */}
-              <div className="absolute inset-0 bg-green-400 rounded-[20px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] transform translate-x-1" />
-              
-              {/* 메인 카드 */}
-              <div className="absolute inset-0 bg-white rounded-[20px] transform translate-x-3" />
-              
-              {/* 카드 내용 */}
-              <div className="relative h-full flex items-center px-6 py-4 ml-2">
-                {/* 왼쪽 스프링 아이콘 */}
-                <div className="absolute left-0 top-1/3 transform -translate-y-1/2 -translate-x-5">
-                  <img 
-                    src={springIcon} 
-                    alt="Spring decoration" 
-                    className="w-8 h-8 sm:w-10 sm:h-10 pointer-events-none select-none" 
-                    draggable={false}
-                  />
-                </div>
+        {loading ? (
+          // 로딩 상태
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-[#74CD79] mb-4" />
+            <span className="text-gray-600">발표 기록을 불러오는 중...</span>
+          </div>
+        ) : error ? (
+          // 에러 상태
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button 
+              className="px-4 py-2 bg-[#74CD79] text-white rounded-md hover:bg-[#5fb864] transition-colors"
+              onClick={() => window.location.reload()} 
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : presentationRecords.length === 0 ? (
+          // 빈 상태
+          <div className="flex flex-col items-center justify-center h-64 text-center">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <FileText className="h-12 w-12 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">아직 발표 기록이 없습니다</h3>
+            <p className="text-gray-600 mb-4">첫 번째 발표를 시작해보세요!</p>
+            <button 
+              onClick={onNewPresentationClick}
+              className="px-6 py-2 bg-[#74CD79] text-white rounded-md hover:bg-[#5fb864] transition-colors"
+            >
+              새 발표 시작하기
+            </button>
+          </div>
+        ) : (
+          // 발표 기록 리스트
+          presentationRecords.map((record) => (
+            <div
+              key={record.id}
+              onClick={() => onRecordClick(record)}
+              className="justify-center max-w-80 max-w-md mx-auto relative cursor-pointer hover:opacity-50 transition-opacity"
+            >
+              {/* 컨테이너 - 카드 높이 설정 */}
+              <div className="h-24 relative">
+                {/* 배경 그림자 카드 */}
+                <div className="absolute inset-0 bg-green-400 rounded-[20px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] transform translate-x-1" />
                 
-                {/* 텍스트 영역 */}
-                <div className="flex-1 pr-4 text-left pb-4">
-                  {/* 날짜 */}
-                  <div className="text-neutral-400 text-xs sm:text-sm font-normal font-['Golos_Text'] mb-2">
-                    {record.date}
+                {/* 메인 카드 */}
+                <div className="absolute inset-0 bg-white rounded-[20px] transform translate-x-3" />
+                
+                {/* 카드 내용 */}
+                <div className="relative h-full flex items-center px-6 py-4 ml-2">
+                  {/* 왼쪽 스프링 아이콘 */}
+                  <div className="absolute left-0 top-1/3 transform -translate-y-1/2 -translate-x-5">
+                    <img 
+                      src={springIcon} 
+                      alt="Spring decoration" 
+                      className="w-8 h-8 sm:w-10 sm:h-10 pointer-events-none select-none" 
+                      draggable={false}
+                    />
                   </div>
                   
-                  {/* 제목 */}
-                  <div className="text-neutral-600 text-base sm:text-xl font-bold font-['Golos_Text'] leading-tight">
-                    {record.title}
+                  {/* 텍스트 영역 */}
+                  <div className="flex-1 pr-4 text-left pb-4">
+                    {/* 날짜 */}
+                    <div className="text-neutral-400 text-xs sm:text-sm font-normal font-['Golos_Text'] mb-2">
+                      {record.date}
+                    </div>
+                    
+                    {/* 제목 */}
+                    <div className="text-neutral-600 text-base sm:text-xl font-bold font-['Golos_Text'] leading-tight">
+                      {record.title}
+                    </div>
                   </div>
-                </div>
-                
-                {/* 점수 영역 */}
-                <div className="flex-shrink-0">
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 ${getScoreColor(record.status)} rounded-full flex items-center justify-center`}>
-                    <div className="text-center">
-                      <span className="text-white text-xl sm:text-3xl font-semibold font-['Golos_Text'] leading-none">{record.score}</span>
-                      <span className="text-white text-sm sm:text-base font-semibold font-['Golos_Text']">점</span>
+                  
+                  {/* 점수 영역 */}
+                  <div className="flex-shrink-0">
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 ${getScoreColor(record.status)} rounded-full flex items-center justify-center`}>
+                      <div className="text-center">
+                        <span className="text-white text-xl sm:text-3xl font-semibold font-['Golos_Text'] leading-none">{record.score}</span>
+                        <span className="text-white text-sm sm:text-base font-semibold font-['Golos_Text']">점</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* 하단 네비게이션 */}
